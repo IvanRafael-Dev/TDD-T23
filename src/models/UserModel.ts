@@ -1,8 +1,8 @@
-import { NewUserBody, UserModel } from '../services/interfaces/IUserService'
+import { NewUserBody, UserModelData } from '../services/interfaces/IUserService'
 import { IUserModel } from './interfaces/IUserModel'
 
 export class UserModelGeneric implements IUserModel {
-  async create (user: NewUserBody): Promise<UserModel> {
+  async create (user: NewUserBody): Promise<UserModelData> {
     console.log('model chamada')
 
     return {

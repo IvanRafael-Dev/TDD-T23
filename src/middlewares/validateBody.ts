@@ -1,4 +1,4 @@
-import { type NextFunction, type Request, type Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 
 export const validateBody = (req: Request, res: Response, next: NextFunction): Response | void => {
   const requiredFields = ['email', 'password', 'username']

@@ -1,5 +1,5 @@
 import { IUserModel } from '../models/interfaces/IUserModel'
-import { NewUserBody, IUserService, UserModel } from './interfaces/IUserService'
+import { NewUserBody, IUserService, UserModelData } from './interfaces/IUserService'
 
 export class UserService implements IUserService {
   private readonly _userModel: IUserModel
@@ -8,7 +8,7 @@ export class UserService implements IUserService {
     this._userModel = userModel
   }
 
-  async create (user: NewUserBody): Promise<Omit<UserModel, 'password'>> {
+  async create (user: NewUserBody): Promise<Omit<UserModelData, 'password'>> {
     const result = await this._userModel.create(user)
     const { password: _, ...userWithoutPass } = result
     return userWithoutPass
