@@ -1,8 +1,8 @@
-import { UserModelGeneric } from './../../src/models/UserModel'
 import chai, { expect } from 'chai'
 import chaiHttp from 'chai-http'
 import { app } from '../../src/api/app'
 import sinon from 'sinon'
+import { User } from '../../src/database/models/User'
 
 chai.use(chaiHttp)
 
@@ -41,27 +41,60 @@ describe('POST /users', () => {
     })
   })
 
-  describe('quando a requisição é feita com sucesso', () => {
-    it('deve retornar um status 201', async () => {
-      sinon.stub(UserModelGeneric.prototype, 'create').resolves({
-        id: 1,
-        password: 'mock_any_pass',
-        email: 'mock_any_email',
-        username: 'mock_any_username'
-      })
+  describe('quando o email já está cadastrado no banco de dados', () => {
+    const newUserMock = {
+      id: 1,
+      username: 'any_username',
+      email: 'any_user@mail.com',
+      password: 'any_pass'
+    }
+
+    afterEach(sinon.restore)
+
+    it('deve retornar um status 409', async () => {
+      sinon.stub(User, 'findOne').resolves(newUserMock as User)
 
       const httpResponse = await chai
         .request(app)
         .post('/users')
         .send({
           email: 'valid-email@mail.com',
-          password: 'any_password',
-          username: 'any_username'
+          password: 'valid_any_password',
+          username: 'valid_any_username'
+        })
+      expect(httpResponse.status).to.equal(409)
+      expect(httpResponse.body).to.deep.equal({ error: 'O email já está cadastrado' })
+    })
+  })
+
+  describe('quando a requisição é feita com sucesso', () => {
+    const newUserMock = {
+      id: 1,
+      username: 'any_username',
+      email: 'any_user@mail.com',
+      password: 'any_pass'
+    }
+
+    const { password: _, ...userWithoutPass } = newUserMock
+
+    afterEach(() => { sinon.restore() })
+
+    it('deve retornar um status 201', async () => {
+      sinon.stub(User, 'findOne').resolves(null)
+      sinon.stub(User, 'create').resolves(newUserMock as User)
+
+      const httpResponse = await chai
+        .request(app)
+        .post('/users')
+        .send({
+          email: 'valid-email@mail.com',
+          password: 'valid_any_password',
+          username: 'valid_any_username'
         })
       expect(httpResponse.status).to.equal(201)
       expect(httpResponse.body).to.have.all.keys(['id', 'email', 'username'])
-
-      sinon.restore()
+      expect(httpResponse.body).not.have.property('password')
+      expect(httpResponse.body).to.deep.equal(userWithoutPass)
     })
   })
 })
